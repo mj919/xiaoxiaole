@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#241748">
+<title>照片消消乐</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 顶栏 ===== -->
+  <header id="topbar">
+    <div class="stat">
+      <span class="k">第</span><span class="v" id="levelNum">1</span><span class="k">关</span>
+    </div>
+    <div class="title-mini">照片消消乐</div>
+    <div class="stat right">
+      <span class="k">剩余</span><span class="v" id="remainNum">0</span>
+    </div>
+  </header>
+
+  <!-- ===== 牌堆 ===== -->
+  <main id="stage">
+    <div id="board"></div>
+  </main>
+
+  <!-- ===== 底部：卡槽 + 道具 ===== -->
+  <footer id="bottom">
+    <div id="slots"></div>
+    <div id="tools">
+      <button class="tool" id="toolUndo"><span class="ti">↶</span><span class="tn">撤销</span><span class="tc">1</span></button>
+      <button class="tool" id="toolShuffle"><span class="ti">⇄</span><span class="tn">洗牌</span><span class="tc">1</span></button>
+      <button class="tool" id="toolRemove"><span class="ti">⇱</span><span class="tn">移出</span><span class="tc">1</span></button>
+    </div>
+  </footer>
+
+  <!-- ===== 飞牌动画层 ===== -->
+  <div id="flyLayer"></div>
+
+  <!-- ===== 开始 / 胜利 / 失败 ===== -->
+  <div id="startScreen" class="overlay">
+    <div class="panel">
+      <h1 class="game-title">照片消消乐</h1>
+      <p class="sub">点牌 → 集齐 3 张相同的自动消除<br>卡槽只有 7 格，满了就输</p>
+      <div class="rule-list">
+        <div><b>●</b> 被压住的牌（变暗）不能点</div>
+        <div><b>●</b> 凑齐 3 张相同的牌自动消除</div>
+        <div><b>●</b> 清空全部牌 = 过关</div>
+      </div>
+      <button class="btn primary" id="btnStart">开始游戏</button>
+    </div>
+  </div>
+
+  <div id="winScreen" class="overlay hidden">
+    <div class="panel">
+      <h2 class="res-title win">过关！</h2>
+      <p class="sub" id="winSub">全部消除完毕</p>
+      <button class="btn primary" id="btnNext">下一关</button>
+      <button class="btn ghost" id="btnReplay1">重玩本关</button>
+    </div>
+  </div>
+
+  <div id="loseScreen" class="overlay hidden">
+    <div class="panel">
+      <h2 class="res-title lose">卡槽满了</h2>
+      <p class="sub">没有位置放下新牌了</p>
+      <button class="btn primary" id="btnRetry">再来一次</button>
+      <button class="btn ghost" id="btnBackHome">回到第一关</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="assets/cards/cards.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
