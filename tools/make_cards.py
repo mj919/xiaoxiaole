@@ -40,9 +40,12 @@ def imread_u(path, flags=cv2.IMREAD_COLOR):
         return None
 
 
-def imwrite_u(path, img):
+def imwrite_u(path, img, quality=88):
     ext = os.path.splitext(path)[1] or '.png'
-    ok, buf = cv2.imencode(ext, img)
+    params = []
+    if ext.lower() in ('.jpg', '.jpeg'):
+        params = [cv2.IMWRITE_JPEG_QUALITY, quality]   # 照片用 JPEG 比 PNG 小得多
+    ok, buf = cv2.imencode(ext, img, params)
     if ok:
         buf.tofile(path)
     return ok
@@ -90,6 +93,12 @@ def crop_square(img, left, top, side):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
+    # 清掉上一轮生成的旧牌面（换过格式/换过照片时避免残留）
+    for old in glob.glob(os.path.join(OUT, 'card_*')):
+        try:
+            os.remove(old)
+        except OSError:
+            pass
     files = []
     for ext in ('*.jpg', '*.jpeg', '*.png', '*.webp', '*.bmp'):
         files += glob.glob(os.path.join(RAW, ext))
@@ -114,7 +123,7 @@ def main():
         if card is None:
             print(f'  [跳过] 裁剪失败：{f}')
             continue
-        name = f'card_{i}.png'
+        name = f'card_{i}.jpg'
         imwrite_u(os.path.join(OUT, name), card)
         cards.append(name)
         print(f'  [{i}/{len(files)}] {os.path.basename(f)} -> {name}')

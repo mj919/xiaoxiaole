@@ -164,6 +164,7 @@ body{
   border:1px solid var(--line);font-weight:700;font-size:15px;box-shadow:none;
 }
 .btn.ghost:active{background:rgba(255,255,255,.16);}
+.btn:disabled{opacity:.55;cursor:default;pointer-events:none;filter:grayscale(.35);}
 
 /* 过关时的彩带 */
 .confetti{

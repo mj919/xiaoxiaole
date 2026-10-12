@@ -1,1 +1,1 @@
-window.CARDS = ["card_1.png", "card_2.png", "card_3.png", "card_4.png", "card_5.png", "card_6.png", "card_7.png", "card_8.png"];
+window.CARDS = ["card_1.jpg", "card_2.jpg", "card_3.jpg", "card_4.jpg", "card_5.jpg", "card_6.jpg", "card_7.jpg", "card_8.jpg"];

@@ -481,12 +481,35 @@ function solvePick() {
   return alive[0];
 }
 
+/* 预加载所有牌面图片：进页面就开始下载，避免开局后牌面一片空白 */
+function preloadCards() {
+  const btn = dom.btnStart;
+  const total = CARD_IMAGES.length;
+  let done = 0;
+  btn.disabled = true;
+  btn.textContent = `加载牌面 0%`;
+
+  return Promise.all(CARD_IMAGES.map((name) => new Promise((res) => {
+    const im = new Image();
+    const fin = () => {
+      done++;
+      btn.textContent = done >= total ? '开始游戏' : `加载牌面 ${Math.round(done / total * 100)}%`;
+      res();
+    };
+    im.onload = fin;
+    im.onerror = fin;          // 单张失败也不卡住流程
+    im.src = 'assets/cards/' + name;
+  }))).then(() => { btn.disabled = false; });
+}
+
 /* ============================== 启动 ============================== */
 (function boot() {
   // 调试：?level=2 直接进第 3 关
   const m = location.search.match(/[?&]level=(\d+)/);
   if (m) startLevel(Math.max(0, parseInt(m[1], 10) - 1));
   else dom.startScreen.classList.remove('hidden');
+
+  preloadCards();
 
   // 调试：?auto=N 自动试玩 N 步；?solve=1 按预设解法自动通关
   const am = location.search.match(/[?&]auto=(\d+)/);
