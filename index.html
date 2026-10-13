@@ -45,9 +45,10 @@
   <div id="startScreen" class="overlay">
     <div class="panel">
       <h1 class="game-title">照片消消乐</h1>
-      <p class="sub">点牌 → 集齐 3 张相同的自动消除<br>卡槽只有 7 格，满了就输</p>
+      <p class="sub">点牌 → 集齐 3 张相同的自动消除<br>卡槽放满就输 · 共 <b id="lvTotal">5</b> 关，一关比一关难</p>
+      <div class="lv-dots" id="lvDots"></div>
       <div class="rule-list">
-        <div><b>●</b> 被压住的牌（变暗）不能点</div>
+        <div><b>●</b> 被压住的牌（变灰）不能点</div>
         <div><b>●</b> 凑齐 3 张相同的牌自动消除</div>
         <div><b>●</b> 清空全部牌 = 过关</div>
       </div>

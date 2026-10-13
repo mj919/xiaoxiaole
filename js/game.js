@@ -7,16 +7,19 @@
 
 /* ============================== 配置 ============================== */
 const CFG = {
-  slotCount: 7,        // 卡槽格数（放满即输）
+  slotCount: 7,        // 卡槽格数默认值（关卡可以用 slots 覆盖，放满即输）
   fillRatio: 0.94,     // 牌堆占可用空间的比例
 };
 
-/* 关卡：每层 cols×rows；层与层之间自动错开半格，形成堆叠遮挡
- * 牌数 = Σ cols*rows，会按 3 张一组分配，保证一定有解 */
+/* 关卡：每层 cols×rows；居中后层与层之间自然错开半格，形成堆叠遮挡
+ * 牌数 = Σ cols*rows，必须是 3 的倍数（按每 3 张一组分配，保证一定有解）
+ * slots 可选，不写就用 CFG.slotCount */
 const LEVELS = [
-  { layers: [{ c: 5, r: 8 }, { c: 4, r: 6 }, { c: 2, r: 4 }] },                                  // 40+24+8  = 72
-  { layers: [{ c: 6, r: 8 }, { c: 5, r: 6 }, { c: 3, r: 4 }, { c: 2, r: 3 }] },                   // 48+30+12+6 = 96
-  { layers: [{ c: 6, r: 9 }, { c: 5, r: 6 }, { c: 4, r: 4 }, { c: 3, r: 4 }, { c: 2, r: 4 }] },   // 54+30+16+12+8 = 120
+  { layers: [{ c: 5, r: 6 }, { c: 4, r: 3 }, { c: 2, r: 3 }] },                                  // 30+12+6      = 48   入门
+  { layers: [{ c: 5, r: 8 }, { c: 4, r: 6 }, { c: 2, r: 4 }] },                                  // 40+24+8      = 72
+  { layers: [{ c: 6, r: 8 }, { c: 5, r: 6 }, { c: 3, r: 4 }, { c: 2, r: 3 }] },                  // 48+30+12+6   = 96
+  { layers: [{ c: 6, r: 9 }, { c: 5, r: 6 }, { c: 4, r: 4 }, { c: 3, r: 4 }, { c: 2, r: 4 }] },  // 54+30+16+12+8= 120
+  { layers: [{ c: 6, r: 9 }, { c: 5, r: 8 }, { c: 4, r: 7 }, { c: 3, r: 6 }, { c: 2, r: 5 }], slots: 6 }, // 54+40+28+18+10 = 150  地狱
 ];
 
 /* ============================== DOM ============================== */
@@ -36,6 +39,7 @@ const CARD_IMAGES = window.CARDS && window.CARDS.length ? window.CARDS : ['card_
 /* ============================== 状态 ============================== */
 const S = {
   level: 0,
+  slotCount: CFG.slotCount,   // 本关的卡槽格数（startLevel 时按关卡覆盖）
   cards: [],          // {id,type,x,y,layer,removed,el}
   slots: [],          // {type,cardId}
   unit: 40,           // 一格的像素边长
@@ -175,7 +179,7 @@ function refreshFreeState() {
 /* ============================== 卡槽 ============================== */
 function buildSlotEls() {
   dom.slots.innerHTML = '';
-  for (let i = 0; i < CFG.slotCount; i++) {
+  for (let i = 0; i < S.slotCount; i++) {
     const d = document.createElement('div');
     d.className = 'slot';
     dom.slots.appendChild(d);
@@ -184,7 +188,7 @@ function buildSlotEls() {
 
 function renderSlots(animateIdx) {
   const els = dom.slots.children;
-  for (let i = 0; i < CFG.slotCount; i++) {
+  for (let i = 0; i < S.slotCount; i++) {
     const el = els[i];
     const s = S.slots[i];
     if (s) {
@@ -212,7 +216,7 @@ function onPick(card) {
   SFX.init();
   if (S.busy || S.over || card.removed) return;
   if (!isFree(card, S.cards)) { SFX.blocked(); nudge(card); return; }
-  if (S.slots.length >= CFG.slotCount) return;
+  if (S.slots.length >= S.slotCount) return;
 
   SFX.pick();
   card.removed = true;
@@ -276,7 +280,7 @@ function settle() {
   }
 
   updateHUD();
-  if (S.slots.length >= CFG.slotCount) { lose(); return; }
+  if (S.slots.length >= S.slotCount) { lose(); return; }
   checkWin();
 }
 
@@ -295,9 +299,12 @@ function win() {
   S.over = true;
   SFX.win();
   confetti();
-  dom.winSub.textContent = `第 ${S.level + 1} 关 · 全部消除完毕`;
-  const last = S.level >= LEVELS.length - 1;
-  dom.btnNext.textContent = last ? '再玩一次' : '下一关';
+  const total = LEVELS.length;
+  const last = S.level >= total - 1;
+  dom.winSub.textContent = last
+    ? `第 ${total} 关全部通关，厉害！`
+    : `第 ${S.level + 1} / ${total} 关 · 下一关更难`;
+  dom.btnNext.textContent = last ? '从头再玩' : '下一关';
   dom.winScreen.classList.remove('hidden');
 }
 
@@ -396,6 +403,7 @@ function updateTools() {
 /* ============================== 开局 ============================== */
 function startLevel(idx) {
   S.level = Math.max(0, Math.min(idx, LEVELS.length - 1));
+  S.slotCount = LEVELS[S.level].slots || CFG.slotCount;   // 关卡可覆盖卡槽数
   S.cards = [];
   S.slots = [];
   S.history = [];
@@ -469,7 +477,7 @@ function autoPick() {
   S.slots.forEach((s) => { cnt[s.type] = (cnt[s.type] || 0) + 1; });
   return free.find((c) => cnt[c.type] === 2)          // 能立刻凑三张的最优先
       || free.find((c) => cnt[c.type] === 1)
-      || (S.slots.length < CFG.slotCount - 1 ? free.find((c) => !cnt[c.type]) : null)
+      || (S.slots.length < S.slotCount - 1 ? free.find((c) => !cnt[c.type]) : null)
       || free[0];
 }
 
@@ -510,6 +518,11 @@ function preloadCards() {
   else dom.startScreen.classList.remove('hidden');
 
   preloadCards();
+
+  // 开始界面：关卡总数 + 进度圆点
+  const dots = $('lvDots'), totalEl = $('lvTotal');
+  if (totalEl) totalEl.textContent = LEVELS.length;
+  if (dots) dots.innerHTML = LEVELS.map((_, i) => `<i class="${i === 0 ? 'now' : ''}"></i>`).join('');
 
   // 调试：?auto=N 自动试玩 N 步；?solve=1 按预设解法自动通关
   const am = location.search.match(/[?&]auto=(\d+)/);
